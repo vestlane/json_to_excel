@@ -3,8 +3,10 @@ import json
 import time
 import os
 
-SESSION_COOKIE = 'eyJpZCI6IjIyNjI0MDdiLWExYWUtNTdmOC04YjdlLTVhMmU2ZDhiNjk2MyIsImNyZWF0ZWQiOjE2NjU1NzQ1NDExNzEsImV4aXN0aW5nIjp0cnVlfQ==; _ga=GA1.1.1267307625.1692372568; _ga_KTGLXV8B2H=GS1.1.1694078221.5.0.1694078221.0.0.0; csrftoken=UsaVHzNV8ozH5ynWT7kcp0JMhiPWoylLtHwVtEWCi968v4JXjFIXpEwr7DNvTlcP; sessionid=0hho7bjjxak6erp3pm309wce0v3bkxyf; _hjIncludedInSessionSample_2798930=0; _hjSession_2798930=eyJpZCI6IjgxM2RjYjAxLTZlNTQtNDgzMi1iNDU1LTZhMzJlNTQ5MTczYyIsImNyZWF0ZWQiOjE2OTUzMzEyMjYzOTIsImluU2FtcGxlIjpmYWxzZX0=; _hjAbsoluteSessionInProgress=0; _ga_SP6YTCCCW3=GS1.1.1695331226.32.1.1695331227.0.0.0'
-PAGE_TOTAL = 19
+#take it by peeking into a request after login to prod
+SESSION_COOKIE = 'eyJpZCI6IjIyNjI0MDdiLWExYWU    ... 0cnVlfQ==; _ga=GA1.1.1267307625.1692372568; _ga_KTGLXV8B2H=GS1.1.1694078221.5.0.1694078221.0.0.0; csrftoken=UsaVHzNV8ozH5ynWT7kcp0JMhiPWoylLtHwVtEWCi968v4JXjFIXpEwr7DNvTlcP; sessionid=0hho7bjjxak6erp3pm309wce0v3bkxyf; _hjIncludedInSessionSample_2798930=0; _hjSession_2798930=eyJpZCI6IjgxM2RjYjAxLTZlNTQtNDgzMi1iNDU1LTZhMzJlNTQ5MTczYyIsImNyZWF0ZWQiOjE2OTUzMzEyMjYzOTIsImluU2FtcGxlIjpmYWxzZX0=; _hjAbsoluteSessionInProgress=0; _ga_SP6YTCCCW3=GS1.1.1695331226.32.1.1695331227.0.0.0'
+PAGE_START = 1
+PAGE_END = 19
 
 REQUEST = "curl 'https://backend.app.vestlane.com/api/subscription/?format=json&page=<PAGE_NUMBER>' "\
             "-H 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7' " \
@@ -43,9 +45,11 @@ def flatten_json(json_obj, separator='_', parent_key=''):
 
 
 all_flattened_subscriptions = []
-for page_number in range(1, PAGE_TOTAL+1):
+for page_number in range(1, PAGE_END + 1):
     response = os.popen(REQUEST.replace('<SESSION_COOKIE>', SESSION_COOKIE).replace('<PAGE_NUMBER>', str(page_number))).read()
-    subscriptions = json.loads(response)['results']
+    subscriptions = json.loads(response).get('results')
+    if not subscriptions:
+        continue
     for subscription in subscriptions:
         all_flattened_subscriptions.append(flatten_json(subscription))
     time.sleep(5)
