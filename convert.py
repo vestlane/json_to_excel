@@ -43,6 +43,7 @@ def flatten_json(json_obj, separator='_', parent_key=''):
             items[new_key] = value
     return items
 
+all_subscriptions=[]
 
 all_flattened_subscriptions = []
 for page_number in range(1, PAGE_END + 1):
@@ -50,9 +51,15 @@ for page_number in range(1, PAGE_END + 1):
     subscriptions = json.loads(response).get('results')
     if not subscriptions:
         continue
+
+    all_subscriptions.extend(subscriptions)
+
     for subscription in subscriptions:
         all_flattened_subscriptions.append(flatten_json(subscription))
     time.sleep(5)
+
+with open('./output.json', 'w') as json_file:
+    json.dump(all_subscriptions, json_file)
 
 df = pd.DataFrame(all_flattened_subscriptions)
 df.to_excel('./output.xlsx', index=False)
